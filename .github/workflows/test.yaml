@@ -50,6 +50,7 @@ jobs:
           name: playwright-report
           path: playwright-report/
       - name: Send a Slack Message on Failure
+        id: slack
         uses: slackapi/slack-github-action@v1.27.0
         if: failure()
         with:
@@ -66,7 +67,7 @@ jobs:
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
   test-webhook-url-secret:
     runs-on: ubuntu-latest
