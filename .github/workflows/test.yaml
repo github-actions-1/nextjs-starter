@@ -8,7 +8,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Node Environmetn
+      - name: Setup Node Environment
         uses: actions/setup-node@v3
         with:
           node-version: 20
@@ -17,9 +17,9 @@ jobs:
         run: npm ci
       - name: Check for Formatting Errors
         run: npm run format
-      - name: Check for ESLint
+      - name: Check for ESLint Errors
         run: npm run lint
-      - name: Check for type errors
+      - name: Check for Type Errors
         run: npm run typecheck
       - name: Build Project
         run: npm run build
@@ -27,27 +27,23 @@ jobs:
         with:
           name: build
           path: .next/
-
-      - name: Run Unit Test
+      - name: Run Unit Tests
         run: npm run test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage
           path: coverage/
-      - name: Install Requirements in the Terminal
-        run: npm install --save-dev jest
-      - name: Run Tests and Generate a Coverage Report
-        run: npx jest --coverage
-      - name: Upload Coverage Reports to Codecov
+      - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         env:
-          CODECOV_TOKEN: $${{ secrets.CODECOV_TOKEN }}
-    
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-      - name: Run E2E tests
+      - name: Run E2E Tests
         run: npm run test:e2e
+        env:
+          FLAGSMITH_KEY: ${{ secrets.FLAGSMITH_KEY }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
