@@ -68,3 +68,8 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+  test-webhook-url-secret:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Slack Webhook Url
+        run: echo "Webhook URL is ${{ secrets.SLACK_WEBHOOK_URL }}"
