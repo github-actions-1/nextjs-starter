@@ -15,8 +15,10 @@ jobs:
           cache: "npm"
       - name: Install Dependencies
         run: npm ci
-      - name: Check for Formatting Errors
-        run: npm run format
+      - name: Check and fix Formatting Errors
+        run: |
+          npm run format -- --write
+          npm run format
       - name: Check for ESLint Errors
         run: npm run lint
       - name: Check for Type Errors
