@@ -16,13 +16,13 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const reposponse = await github.rest.pulls.get({
+            const response = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
-            console.log(response.data)
-            return response.data.head.ref
+            console.log(response.data);
+            return response.data.head.ref;
       - name: Trigger a Branch Workflow
         uses: actions/github-script@v6
         with:
