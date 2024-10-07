@@ -139,8 +139,7 @@ jobs:
           script: |
             const comment = `### :hourglass_flowing_sand: Deployment Completed...
               
-            You can view the deployment here: http://${{ steps.get-env-cname.outputs.aws_env_cname }}/actions/runs/${{ github.run_id }})
-            `;
+            You can view the deployment here: http://${{ steps.get-env-cname.outputs.aws_env_cname }}`
   
             github.rest.issues.createComment({
               owner: context.repo.owner,
