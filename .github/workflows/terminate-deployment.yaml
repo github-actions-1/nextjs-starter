@@ -32,9 +32,18 @@ jobs:
         run: |
           echo "AWS Region: ${{ vars.AWS_REGION }}"
           echo "GitHub Repo: ${{ github.repository }}"
-          echo "AWS access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}"   
-          echo "AWS secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
+            echo "AWS access key ID is not set."
+          else
+            echo "AWS access key ID is set."
+          fi
+      
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "AWS secret access key is not set."
+          else
+            echo "AWS secret access key is set."
+          fi
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
