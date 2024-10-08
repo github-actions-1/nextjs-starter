@@ -1,0 +1,87 @@
+# 1. Configure AWS Credentials
+# 2. Use AWS CLI to destroy the environment
+# 3. Install EB CLI
+# 4. Initialize using EB init
+# 5. get env name and env status as in deploy wf
+# 6. decide to terminate the environment or not
+# 7. if the env does not exist or exists but terminated we don't have to do anything
+# 8. if exists use 'eb termninate' pass the env name in order to terminate
+# TRICKY
+# 9. In the github ui the deployment will still stay as active even after termination
+
+name: Terminate the Environment
+on: 
+  workflow_call:
+    inputs:
+        aws-env:
+          description: "AWS Elastic Beanstalk Environment"
+          required: true
+          default: "gha-course-staging"
+          type: string
+        github-env:
+          description: "Github Environment"
+          required: true
+          default: "staging"
+          type: string
+
+jobs:
+  terminate-environment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Get AWS ENV Name
+        id: get-env-name
+        run: echo "aws_env=$(aws elasticbeanstalk describe-environments --application-name ${{ vars.AWS_EB_APP_NAME }} --environment-names ${{ inputs.aws-env }} --query "Environments[0].EnvironmentName" --output text)" >> $GITHUB_OUTPUT
+      
+      - name: Get AWS ENV Status
+        id: get-env-status
+        run: echo "aws_env_status=$(aws elasticbeanstalk describe-environments --application-name ${{ vars.AWS_EB_APP_NAME }} --environment-names ${{ inputs.aws-env }} --query "Environments[0].Status" --output text)" >> $GITHUB_OUTPUT
+
+      - name: Install EB CLI
+        id: install-eb-cli
+        run: pip install awsebcli
+
+      - name: Initialize EB
+        run: eb init ${{ vars.AWS_EB_APP_NAME }} --platform "${{ vars.AWS_EB_PLATFORM }}" --region ${{ vars.AWS_REGION }}
+
+      - name: Terminate if Environment Exists
+        if: steps.get-env-status.outputs.aws_env_status != 'Terminated' && steps.get-env-status.outputs.aws_env_status != 'Terminating'
+        run: eb terminate ${{ inputs.aws-env }}
+
+      - name: Mark Deployment as Inactive
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ steps.get-env-name.outputs.aws_env }},
+              state: 'inactive'
+            })
+
+      - name: Send a Slack Message on Termination
+        id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        if: always()
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🛑 TERMINATION of AWS environment *${{ inputs.aws-env }}* using *${{ inputs.github-env }}* Github environment was successful. [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
