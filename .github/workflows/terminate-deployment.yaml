@@ -27,6 +27,8 @@ on:
 jobs:
   terminate-environment:
     runs-on: ubuntu-latest
+    environment:
+        name: ${{ inputs.github-env }}
     steps:
       - name: Debug Environment Variables
         run: |
