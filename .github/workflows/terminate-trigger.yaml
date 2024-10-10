@@ -6,6 +6,7 @@ on:
 
 jobs:
   terminate-environment:
+    permissions: write-all
     if: ${{ github.ref != 'refs/heads/main' }}
     uses: ./.github/workflows/terminate-deployment.yaml
     with:
